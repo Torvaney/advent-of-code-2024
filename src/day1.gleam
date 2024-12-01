@@ -2,28 +2,21 @@ import gleam/int
 import gleam/list
 import gleam/result
 import gleam/string
-
-fn try_with_msg(
-  result: Result(a, Nil),
-  msg: String,
-  apply fun: fn(a) -> Result(b, String),
-) -> Result(b, String) {
-  result.try(result |> result.replace_error(msg), apply: fun)
-}
+import utils
 
 fn parse_row(input_row: String) -> Result(#(Int, Int), String) {
-  use nums <- try_with_msg(
+  use nums <- utils.try_with_msg(
     string.split_once(input_row, "   "),
     "Failed to split row: '" <> input_row <> "'",
   )
 
   let #(s1, s2) = nums
 
-  use int1 <- try_with_msg(
+  use int1 <- utils.try_with_msg(
     int.parse(s1),
     "Failed to parse: '" <> s1 <> "' to `Int`",
   )
-  use int2 <- try_with_msg(
+  use int2 <- utils.try_with_msg(
     int.parse(s2),
     "Failed to parse: '" <> s2 <> "' to `Int`",
   )
