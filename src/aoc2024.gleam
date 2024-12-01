@@ -30,29 +30,50 @@ fn log_debug(a: a, msg: String, show: Bool) -> a {
   }
 }
 
-fn day_command(day, parse, solve) -> glint.Command(Nil) {
-  use puzzle <- glint.flag(
-    glint.bool_flag("puzzle")
-    |> glint.flag_default(False)
-    |> glint.flag_help("Run on the puzzle input (not the example!)"),
+type Day(a) {
+  Day(
+    index: Int,
+    parse: fn(String) -> Result(a, String),
+    solve1: fn(a) -> Result(Int, String),
+    solve2: fn(a) -> Result(Int, String),
   )
+}
 
+fn solve_fn(day: Day(a), part2: Bool) {
+  case part2 {
+    True -> day.solve2
+    False -> day.solve1
+  }
+}
+
+fn day_command(day: Day(a)) -> glint.Command(Nil) {
   use debug <- glint.flag(
     glint.bool_flag("debug")
     |> glint.flag_default(False)
     |> glint.flag_help("Debug an error in parsing or solving..."),
   )
+  use puzzle <- glint.flag(
+    glint.bool_flag("puzzle")
+    |> glint.flag_default(False)
+    |> glint.flag_help("Run on the puzzle input (not the example!)"),
+  )
+  use part2 <- glint.flag(
+    glint.bool_flag("two")
+    |> glint.flag_default(False)
+    |> glint.flag_help("Part Two!"),
+  )
 
   use _, _, flags <- glint.command()
-  let assert Ok(puzzle) = puzzle(flags)
   let assert Ok(debug) = debug(flags)
+  let assert Ok(puzzle) = puzzle(flags)
+  let assert Ok(part2) = part2(flags)
 
   let solution =
-    read_input(day, puzzle)
+    read_input(day.index, puzzle)
     |> log_debug("Input", debug)
-    |> parse()
+    |> day.parse()
     |> log_debug("Parsed:", debug)
-    |> result.try(solve)
+    |> result.try(solve_fn(day, part2))
     |> log_debug("Solved: ", debug)
     |> result.map(int.to_string)
 
@@ -62,17 +83,9 @@ fn day_command(day, parse, solve) -> glint.Command(Nil) {
   }
 }
 
-type Day(a) {
-  Day(
-    day: Int,
-    parse: fn(String) -> Result(a, String),
-    solve: fn(a) -> Result(Int, String),
-  )
-}
-
 fn add_days(cmd: glint.Glint(Nil), days: List(Day(a))) {
   list.fold(over: days, from: cmd, with: fn(c, d) {
-    glint.add(c, [int.to_string(d.day)], day_command(d.day, d.parse, d.solve))
+    glint.add(c, [int.to_string(d.index)], day_command(d))
   })
 }
 
@@ -80,6 +93,6 @@ pub fn main() {
   glint.new()
   |> glint.with_name("Advent of Code, 2024")
   |> glint.pretty_help(glint.default_pretty_help())
-  |> add_days([Day(1, day1.parse, day1.solve)])
+  |> add_days([Day(1, day1.parse, day1.solve1, day1.solve2)])
   |> glint.run(argv.load().arguments)
 }
