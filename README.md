@@ -1,24 +1,17 @@
 # advent_of_code_2024
 
-[![Package Version](https://img.shields.io/hexpm/v/advent_of_code_2024)](https://hex.pm/packages/advent_of_code_2024)
-[![Hex Docs](https://img.shields.io/badge/hex-docs-ffaff3)](https://hexdocs.pm/advent_of_code_2024/)
-
 ```sh
-gleam add advent_of_code_2024@1
-```
-```gleam
-import advent_of_code_2024
+gleam run -- [number] [ --debug=<BOOL> --puzzle=<BOOL> --two=<BOOL> ]
 
-pub fn main() {
-  // TODO: An example of the project in use
-}
+FLAGS:
+    --debug=<BOOL>        Debug an error in parsing or solving...
+    --help                Print help information
+    --puzzle=<BOOL>       Run on the puzzle input (not the example!)
+    --two=<BOOL>          Part Two!
 ```
 
-Further documentation can be found at <https://hexdocs.pm/advent_of_code_2024>.
-
-## Development
+For example:
 
 ```sh
-gleam run   # Run the project
-gleam test  # Run the tests
+gleam run -- 1 --puzzle
 ```
