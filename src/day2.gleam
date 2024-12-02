@@ -1,7 +1,7 @@
 import gleam/int
-import gleam/io
 import gleam/list
 import gleam/order
+import gleam/pair
 import gleam/result
 import gleam/string
 import input
@@ -44,7 +44,7 @@ fn categorise_level(pair: #(Level, Level)) -> LevelDifference {
   }
 }
 
-fn all_ascending_or_descending(diffs: List(LevelDifference)) {
+fn all_ascending_or_descending(diffs: List(LevelDifference)) -> Bool {
   case list.unique(diffs) {
     [Asc] -> True
     [Desc] -> True
@@ -52,7 +52,7 @@ fn all_ascending_or_descending(diffs: List(LevelDifference)) {
   }
 }
 
-fn is_safe(report: Report) {
+fn is_safe(report: Report) -> Bool {
   list.window_by_2(report)
   |> list.map(categorise_level)
   |> all_ascending_or_descending()
@@ -64,6 +64,18 @@ pub fn solve1(input: Puzzle) -> Result(Int, String) {
 
 // Part 2
 
+fn drop_nth(over list: List(a), at n: Int) -> List(a) {
+  list.zip(list.range(0, list.length(list)), list)
+  |> list.filter(fn(xy) { xy.0 != n })
+  |> list.map(pair.second)
+}
+
+fn is_safe_with_problem_dampener(report: Report) {
+  list.range(0, list.length(report))
+  |> list.map(fn(i) { drop_nth(report, i) })
+  |> list.any(is_safe)
+}
+
 pub fn solve2(input: Puzzle) -> Result(Int, String) {
-  Error("Part 2 not implemented yet!")
+  Ok(list.count(input, is_safe_with_problem_dampener))
 }
