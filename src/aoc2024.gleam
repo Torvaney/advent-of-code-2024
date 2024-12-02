@@ -1,5 +1,6 @@
 import argv
 import day1
+import day2
 import gleam/int
 import gleam/io
 import gleam/list
@@ -93,6 +94,9 @@ pub fn main() {
   glint.new()
   |> glint.with_name("Advent of Code, 2024")
   |> glint.pretty_help(glint.default_pretty_help())
-  |> add_days([Day(1, day1.parse, day1.solve1, day1.solve2)])
+  |> add_days([
+    // Day(1, day1.parse, day1.solve1, day1.solve2),
+    Day(2, day2.parse, day2.solve1, day2.solve2),
+  ])
   |> glint.run(argv.load().arguments)
 }
