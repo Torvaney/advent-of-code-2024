@@ -23,6 +23,20 @@ echo "Created $next_day_src from template."
 mkdir -p "$next_day_input_dir"
 touch "$next_day_input_dir/example.txt"
 touch "$next_day_input_dir/puzzle.txt"
-echo "Created directory $next_day_input_dir with example.txt and puzzle.txt."
+
+# Fetch puzzle input if token exists
+if [[ -f ".token" ]]; then
+  token=$(cat .token)
+  puzzle_url="https://adventofcode.com/2024/day/${next_day}/input"
+  curl -s --cookie "session=${token}" "${puzzle_url}" > "$next_day_input_dir/puzzle.txt"
+  echo "Fetched puzzle input from Advent of Code."
+else
+  echo "No .token file found. To get your token:"
+  echo "1. Login to adventofcode.com"
+  echo "2. Open browser dev tools"
+  echo "3. Go to Application/Storage -> Cookies"
+  echo "4. Copy the 'session' cookie value"
+  echo "5. Paste it into a file named .token"
+fi
 
 echo "Setup for Day $next_day is complete!"
