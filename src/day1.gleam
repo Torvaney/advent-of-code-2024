@@ -3,6 +3,7 @@ import gleam/list
 import gleam/result
 import gleam/string
 import utils
+import input
 
 fn parse_row(input_row: String) -> Result(#(Int, Int), String) {
   use nums <- utils.try_with_msg(
@@ -28,9 +29,7 @@ pub type Puzzle =
   List(#(Int, Int))
 
 pub fn parse(input: String) -> Result(Puzzle, String) {
-  string.split(input, "\n")
-  |> list.filter(fn(x) { !string.is_empty(x) })
-  |> list.try_map(parse_row)
+  input.parse_by_line(input, with: parse_row)
 }
 
 // Part 1
