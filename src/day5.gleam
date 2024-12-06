@@ -1,6 +1,8 @@
 import data/graph
+import gleam/bool
 import gleam/int
 import gleam/list
+import gleam/order
 import gleam/result
 import gleam/set
 import gleam/string
@@ -9,6 +11,8 @@ import input
 pub type Path =
   List(Int)
 
+// NOTE: This was the wrong data structure all along!
+// The puzzle was about *sorting* not about paths!
 pub type Puzzle {
   Puzzle(graph: graph.DirectedGraph(Int), paths: List(Path))
 }
@@ -53,10 +57,8 @@ fn take_middle_element(from list: List(a)) -> Result(a, Nil) {
   }
 }
 
-pub fn solve1(input: Puzzle) -> Result(Int, String) {
-  // map over paths, check if each one is a valid path through the graph
-  input.paths
-  |> list.filter(fn(path) { graph.is_valid_path(input.graph, path) })
+fn sum_middle_elements(from paths: List(Path)) {
+  paths
   |> list.try_map(take_middle_element)
   |> result.replace_error("Couldn't take the middle elements of every path!")
   |> result.try(fn(xs) {
@@ -64,8 +66,33 @@ pub fn solve1(input: Puzzle) -> Result(Int, String) {
   })
 }
 
+pub fn solve1(input: Puzzle) -> Result(Int, String) {
+  // map over paths, check if each one is a valid path through the graph
+  input.paths
+  |> list.filter(fn(path) { graph.is_valid_path(input.graph, path) })
+  |> sum_middle_elements()
+}
+
 // Part 2
 
+fn reorder_to_valid_path(
+  from path: Path,
+  in graph: graph.DirectedGraph(Int),
+) -> Path {
+  // Take the subgraph
+  list.sort(path, by: fn(n1, n2) {
+    case graph.is_valid_path(in: graph, using: [n1, n2]) {
+      True -> order.Lt
+      False -> order.Gt
+    }
+  })
+}
+
 pub fn solve2(input: Puzzle) -> Result(Int, String) {
-  Error("Part 2 not implemented yet!")
+  input.paths
+  |> list.filter(fn(path) {
+    bool.negate(graph.is_valid_path(input.graph, path))
+  })
+  |> list.map(fn(path) { reorder_to_valid_path(path, in: input.graph) })
+  |> sum_middle_elements()
 }
