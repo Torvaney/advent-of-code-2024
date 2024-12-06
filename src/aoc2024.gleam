@@ -2,6 +2,7 @@ import argv
 import day1
 import day2
 import day3
+import day4
 import gleam/int
 import gleam/io
 import gleam/list
@@ -122,6 +123,7 @@ pub fn main() {
     day(1, day1.parse, day1.solve1, day1.solve2),
     day(2, day2.parse, day2.solve1, day2.solve2),
     day(3, day3.parse, day3.solve1, day3.solve2),
+    day(4, day4.parse, day4.solve1, day4.solve2),
   ])
   |> glint.run(argv.load().arguments)
 }
