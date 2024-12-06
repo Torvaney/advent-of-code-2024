@@ -1,6 +1,5 @@
 import gleam/dict
 import gleam/list
-import gleam/pair
 import gleam/result
 import gleam/string
 
@@ -129,4 +128,8 @@ pub fn find_map(
 
 pub fn map(over grid: Grid(a), with fun: fn(Coordinate, a) -> b) -> Grid(b) {
   Grid(data: dict.map_values(grid.data, fun))
+}
+
+pub fn set(in grid: Grid(a), at coord: Coordinate, to val: a) -> Grid(a) {
+  Grid(data: dict.insert(grid.data, coord, val))
 }
