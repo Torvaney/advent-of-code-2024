@@ -1,5 +1,6 @@
 import gleam/dict
 import gleam/list
+import gleam/pair
 import gleam/result
 import gleam/string
 
@@ -12,21 +13,24 @@ pub opaque type Grid(a) {
   Grid(data: dict.Dict(Coordinate, a))
 }
 
-pub fn from_string(str: String) -> Grid(String) {
-  let data =
-    str
-    |> string.split(on: "\n")
-    |> list.index_map(fn(row, row_ix) {
-      row
-      |> string.to_graphemes()
-      |> list.index_map(fn(s, col_ix) { #(#(col_ix, row_ix), s) })
-    })
-    |> list.flatten()
-    |> dict.from_list()
-
+pub fn from_string(
+  str: String,
+  with parse: fn(String) -> Result(a, err),
+) -> Result(Grid(a), err) {
+  str
+  |> string.split(on: "\n")
+  |> list.index_map(fn(row, row_ix) {
+    row
+    |> string.to_graphemes()
+    |> list.index_map(fn(s, col_ix) { #(#(col_ix, row_ix), s) })
+  })
+  |> list.flatten()
+  |> list.try_map(with: fn(item) {
+    parse(item.1) |> result.map(fn(x) { #(item.0, x) })
+  })
+  |> result.map(dict.from_list)
+  |> result.map(Grid)
   // TODO: validate that all the grid squares are filled...
-
-  Grid(data)
 }
 
 // Directions
@@ -45,13 +49,14 @@ pub type Direction {
 pub fn shift(from: Coordinate, towards: Direction) -> Coordinate {
   let #(x, y) = from
   case towards {
-    NorthWest -> #(x - 1, y + 1)
-    North -> #(x, y + 1)
-    NorthEast -> #(x + 1, y + 1)
+    // Coordinates are inverted - the top-left is 0-0
+    NorthWest -> #(x - 1, y - 1)
+    North -> #(x, y - 1)
+    NorthEast -> #(x + 1, y - 1)
     East -> #(x + 1, y)
-    SouthEast -> #(x + 1, y - 1)
-    South -> #(x, y - 1)
-    SouthWest -> #(x - 1, y - 1)
+    SouthEast -> #(x + 1, y + 1)
+    South -> #(x, y + 1)
+    SouthWest -> #(x - 1, y + 1)
     West -> #(x - 1, y)
   }
 }
@@ -100,4 +105,28 @@ pub fn coordinates(from grid: Grid(a)) -> List(Coordinate) {
 
 pub fn values(from grid: Grid(a)) -> List(a) {
   dict.values(grid.data)
+}
+
+pub fn find(
+  in grid: Grid(a),
+  with fun: fn(a) -> Bool,
+) -> Result(#(Coordinate, a), Nil) {
+  dict.to_list(grid.data)
+  |> list.find(fn(item) { fun(item.1) })
+}
+
+pub fn find_map(
+  in grid: Grid(a),
+  with fun: fn(a) -> Result(b, c),
+) -> Result(#(Coordinate, b), Nil) {
+  dict.to_list(grid.data)
+  |> list.find_map(fn(item) {
+    fun(item.1) |> result.map(fn(x) { #(item.0, x) })
+  })
+}
+
+// Transformations
+
+pub fn map(over grid: Grid(a), with fun: fn(Coordinate, a) -> b) -> Grid(b) {
+  Grid(data: dict.map_values(grid.data, fun))
 }

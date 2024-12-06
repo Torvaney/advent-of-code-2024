@@ -7,7 +7,8 @@ pub type Puzzle =
   grid.Grid(String)
 
 pub fn parse(input: String) -> Result(Puzzle, String) {
-  Ok(grid.from_string(input))
+  grid.from_string(input, fn(x) { Ok(x) })
+  |> result.replace_error("Could not parse grid!")
 }
 
 // Part 1
