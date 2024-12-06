@@ -44,17 +44,12 @@ pub fn parse(input: String) -> Result(Puzzle, String) {
 // Part 1
 
 fn take_middle_element(from list: List(a)) -> Result(a, Nil) {
-  // Uses accumulator form per https://tour.gleam.run/flow-control/tail-calls/
-  take_middle_element_loop(list, [])
-}
-
-fn take_middle_element_loop(list: List(a), _acc: List(a)) -> Result(a, Nil) {
   case list {
     [x] -> Ok(x)
     [_, x, _] -> Ok(x)
     [] -> Error(Nil)
     [_, _] -> Error(Nil)
-    [first, ..rest] -> take_middle_element_loop(rest, [first])
+    [_, ..rest] -> take_middle_element(list.take(rest, list.length(rest) - 1))
   }
 }
 
