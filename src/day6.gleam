@@ -2,7 +2,8 @@ import data/grid
 import gleam/int
 import gleam/list
 import gleam/result
-import glitzer/progress
+import gleam/set
+import glitzer/spinner
 
 pub type MapTile {
   Blank
@@ -14,7 +15,7 @@ pub type GuardLocation {
 }
 
 pub type Guard {
-  Guard(location: GuardLocation, history: List(GuardLocation))
+  Guard(location: GuardLocation, history: set.Set(GuardLocation))
 }
 
 pub type Puzzle {
@@ -60,7 +61,7 @@ pub fn parse(input: String) -> Result(Puzzle, String) {
         ParsingGuard(_) -> Blank
       }
     }),
-    guard: Guard(location: guard_loc, history: [guard_loc]),
+    guard: Guard(location: guard_loc, history: set.from_list([guard_loc])),
   ))
 }
 
@@ -71,19 +72,10 @@ type EndState {
   OffMap
 }
 
-fn check_loop(guard: Guard) -> Result(Guard, EndState) {
-  // Ignore the first entry in history because that's always
-  // just the current state
-  case list.contains(list.drop(guard.history, 1), guard.location) {
-    False -> Ok(guard)
-    True -> Error(Loop)
-  }
-}
-
 fn move_guard(guard: Guard, to coord: grid.Coordinate) -> Guard {
   let new_loc = GuardLocation(at: coord, facing: guard.location.facing)
 
-  Guard(location: new_loc, history: [new_loc, ..guard.history])
+  Guard(location: new_loc, history: set.insert(guard.history, new_loc))
 }
 
 fn turn_guard(guard: Guard) -> Guard {
@@ -93,16 +85,20 @@ fn turn_guard(guard: Guard) -> Guard {
       facing: grid.clockwise(guard.location.facing, for: 2),
     )
 
-  Guard(location: new_loc, history: [new_loc, ..guard.history])
+  Guard(location: new_loc, history: set.insert(guard.history, new_loc))
 }
 
 fn step(map: grid.Grid(MapTile), guard: Guard) -> Result(Guard, EndState) {
   let new_coord = grid.shift(guard.location.at, guard.location.facing)
 
-  case grid.get(map, new_coord) {
-    Ok(Blank) -> move_guard(guard, new_coord) |> check_loop()
-    Ok(Obstruction) -> turn_guard(guard) |> check_loop()
-    Error(Nil) -> Error(OffMap)
+  case
+    set.contains(guard.history, GuardLocation(new_coord, guard.location.facing)),
+    grid.get(map, new_coord)
+  {
+    True, _ -> Error(Loop)
+    False, Ok(Blank) -> Ok(move_guard(guard, new_coord))
+    False, Ok(Obstruction) -> Ok(turn_guard(guard))
+    False, Error(Nil) -> Error(OffMap)
   }
 }
 
@@ -116,9 +112,8 @@ fn step_until(map: grid.Grid(MapTile), guard: Guard) -> #(Guard, EndState) {
 pub fn solve1(input: Puzzle) -> Result(Int, String) {
   step_until(input.map, input.guard)
   |> fn(result) { { result.0 }.history }
-  |> list.map(fn(guard) { guard.at })
-  |> list.unique()
-  |> list.length()
+  |> set.map(fn(guard) { guard.at })
+  |> set.size()
   |> Ok()
 }
 
@@ -139,35 +134,35 @@ pub fn solve2(input: Puzzle) -> Result(Int, String) {
     // will occur within the path of the naive run
     step_until(input.map, input.guard)
     |> fn(result) { { result.0 }.history }
-    |> list.map(fn(g) { g.at })
-    |> list.unique()
-    |> list.filter(fn(coord) { coord != input.guard.location.at })
+    |> set.map(fn(g) { g.at })
+    |> set.filter(fn(coord) { coord != input.guard.location.at })
 
-  let n_items = list.length(coordinates_to_search)
-  let bar =
-    progress.new_bar()
-    |> progress.with_length(80)
-    |> progress.with_fill(progress.char_from_string("#"))
-    |> progress.with_fill_head(progress.char_from_string(">"))
-    |> progress.with_empty(progress.char_from_string(" "))
-    |> progress.with_left_text("Searching for loops... |")
-    |> progress.with_right_text("| 0/" <> int.to_string(n_items))
+  let n_items = set.size(coordinates_to_search)
+  let spin =
+    spinner.pulsating_spinner()
+    |> spinner.with_left_text("Searching for loops... |")
+    |> spinner.with_right_text("| 0/" <> int.to_string(n_items))
 
-  let result =
-    list.index_map(coordinates_to_search, fn(coord, ix) {
-      let ticks = { ix * 100 } / n_items
-      progress.print_bar(
-        progress.tick_by(bar, ticks)
-        |> progress.with_right_text(
-          "| " <> int.to_string(ix) <> "/" <> int.to_string(n_items),
-        ),
-      )
+  let #(bar, n, _) =
+    coordinates_to_search
+    |> set.to_list()
+    |> list.fold(#(spin, 0, 0), fn(state, coord) {
+      let #(spin, n_loops, total) = state
+      let spin =
+        spinner.tick(spin)
+        |> spinner.with_right_text(
+          "| " <> int.to_string(total) <> "/" <> int.to_string(n_items),
+        )
 
-      causes_loop(input, coord)
+      spinner.print_spinner(spin)
+
+      case causes_loop(input, coord) {
+        True -> #(spin, n_loops + 1, total + 1)
+        False -> #(spin, n_loops, total + 1)
+      }
     })
-    |> list.count(fn(x) { x })
 
-  progress.print_bar(progress.finish(bar))
+  bar |> spinner.finish() |> spinner.print_spinner()
 
-  Ok(result)
+  Ok(n)
 }
