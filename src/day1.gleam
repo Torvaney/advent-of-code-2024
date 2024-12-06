@@ -1,35 +1,15 @@
 import gleam/int
 import gleam/list
 import gleam/result
-import gleam/string
-import utils
 import input
-
-fn parse_row(input_row: String) -> Result(#(Int, Int), String) {
-  use nums <- utils.try_with_msg(
-    string.split_once(input_row, "   "),
-    "Failed to split row: '" <> input_row <> "'",
-  )
-
-  let #(s1, s2) = nums
-
-  use int1 <- utils.try_with_msg(
-    int.parse(s1),
-    "Failed to parse: '" <> s1 <> "' to `Int`",
-  )
-  use int2 <- utils.try_with_msg(
-    int.parse(s2),
-    "Failed to parse: '" <> s2 <> "' to `Int`",
-  )
-
-  Ok(#(int1, int2))
-}
 
 pub type Puzzle =
   List(#(Int, Int))
 
 pub fn parse(input: String) -> Result(Puzzle, String) {
-  input.parse_by_line(input, with: parse_row)
+  input.parse_by_line(input, with: fn(s) {
+    input.parse_pair(s, split_on: "   ", with: int.parse)
+  })
 }
 
 // Part 1
