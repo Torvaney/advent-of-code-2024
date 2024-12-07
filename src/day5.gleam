@@ -26,7 +26,7 @@ fn parse_edges(input: String) -> Result(set.Set(#(Int, Int)), String) {
 
 fn parse_paths(input: String) -> Result(List(List(Int)), String) {
   input.parse_by_line(input, fn(line) {
-    input.parse_list(line, int.parse)
+    input.parse_list(line, int.parse, ",")
     |> result.replace_error("Unable to parse Int in list '" <> line <> "'")
   })
 }

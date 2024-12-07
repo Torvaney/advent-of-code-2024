@@ -11,11 +11,12 @@ pub fn parse_by_line(
   |> list.try_map(parse_row)
 }
 
-pub fn parse_pair(
+pub fn parse_left_right(
   input: String,
   split_on substring: String,
-  with parse_unit: fn(String) -> Result(a, err),
-) -> Result(#(a, a), String) {
+  left_with parse_left: fn(String) -> Result(a, err),
+  right_with parse_right: fn(String) -> Result(b, err),
+) -> Result(#(a, b), String) {
   use items <- try_with_msg(
     string.split_once(input, substring),
     "Failed to split row: '" <> input <> "' on '" <> substring <> "'",
@@ -23,17 +24,29 @@ pub fn parse_pair(
 
   let #(s1, s2) = items
 
-  use parsed1 <- try_with_msg(parse_unit(s1), "Failed to parse: '" <> s1 <> "'")
-  use parsed2 <- try_with_msg(parse_unit(s2), "Failed to parse: '" <> s2 <> "'")
+  use parsed1 <- try_with_msg(parse_left(s1), "Failed to parse: '" <> s1 <> "'")
+  use parsed2 <- try_with_msg(
+    parse_right(s2),
+    "Failed to parse: '" <> s2 <> "'",
+  )
 
   Ok(#(parsed1, parsed2))
+}
+
+pub fn parse_pair(
+  input: String,
+  split_on substring: String,
+  with parse_unit: fn(String) -> Result(a, err),
+) -> Result(#(a, a), String) {
+  parse_left_right(input, substring, parse_unit, parse_unit)
 }
 
 pub fn parse_list(
   input: String,
   with parse_unit: fn(String) -> Result(a, err),
+  by delim: String,
 ) -> Result(List(a), err) {
-  string.split(input, ",")
+  string.split(input, delim)
   |> list.try_map(parse_unit)
 }
 
