@@ -57,43 +57,42 @@ fn equation_is_true(eq: Equation, ops: List(Op)) -> Bool {
   |> fn(x) { x == ans }
 }
 
-fn depth_first_search(
-  from current: a,
-  with get_next: fn(List(a)) -> List(a),
-  until is_end: fn(List(a)) -> Bool,
-  after visited: List(a),
-) -> Result(List(a), Nil) {
-  let new_visited = [current, ..visited]
+type SearchResult(a) {
+  Continue(a)
+  Complete
+  Failed
+}
 
-  case get_next(visited), is_end(new_visited) {
-    _, True -> Ok(visited)
-    [], _ -> Error(Nil)
-    next, False ->
+fn depth_first_search(
+  with get_next: fn(List(a)) -> SearchResult(List(a)),
+) -> Result(List(a), Nil) {
+  depth_first_search_loop(from: [], with: get_next)
+}
+
+fn depth_first_search_loop(
+  from visited: List(a),
+  with get_next: fn(List(a)) -> SearchResult(List(a)),
+) -> Result(List(a), Nil) {
+  case get_next(visited) {
+    Complete -> Ok(visited)
+    Continue(next) ->
       list.find_map(next, fn(n) {
-        depth_first_search(
-          from: n,
-          with: get_next,
-          until: is_end,
-          after: new_visited,
-        )
+        depth_first_search_loop(from: [n, ..visited], with: get_next)
       })
+    Failed -> Error(Nil)
   }
 }
 
 fn equation_can_be_true(eq: Equation, ops: List(Op)) -> Bool {
   let n_ops = list.length({ nonempty.body(eq.1) })
   let res =
-    depth_first_search(
-      from: Mul,
-      with: fn(prev) {
-        case list.length(prev) >= n_ops {
-          True -> []
-          False -> ops
-        }
-      },
-      until: fn(ops) { equation_is_true(eq, ops) },
-      after: [],
-    )
+    depth_first_search(with: fn(path) {
+      case list.length(path) >= n_ops, equation_is_true(eq, path) {
+        True, True -> Complete
+        False, _ -> Continue(ops)
+        True, False -> Failed
+      }
+    })
 
   result.is_ok(res)
 }
