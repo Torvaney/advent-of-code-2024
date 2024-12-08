@@ -1,3 +1,4 @@
+import data/coord
 import data/grid
 import gleam/int
 import gleam/list
@@ -11,7 +12,7 @@ pub type MapTile {
 }
 
 pub type GuardLocation {
-  GuardLocation(at: grid.Coordinate, facing: grid.Direction)
+  GuardLocation(at: grid.Coordinate, facing: coord.Direction)
 }
 
 pub type Guard {
@@ -24,7 +25,7 @@ pub type Puzzle {
 
 type ParsingMapTile {
   ParsingTile(MapTile)
-  ParsingGuard(grid.Direction)
+  ParsingGuard(coord.Direction)
 }
 
 pub fn parse(input: String) -> Result(Puzzle, String) {
@@ -33,10 +34,10 @@ pub fn parse(input: String) -> Result(Puzzle, String) {
       case x {
         "." -> Ok(ParsingTile(Blank))
         "#" -> Ok(ParsingTile(Obstruction))
-        "^" -> Ok(ParsingGuard(grid.North))
-        ">" -> Ok(ParsingGuard(grid.East))
-        "<" -> Ok(ParsingGuard(grid.West))
-        "v" -> Ok(ParsingGuard(grid.South))
+        "^" -> Ok(ParsingGuard(coord.North))
+        ">" -> Ok(ParsingGuard(coord.East))
+        "<" -> Ok(ParsingGuard(coord.West))
+        "v" -> Ok(ParsingGuard(coord.South))
         x -> Error("Unknown character in grid '" <> x <> "'")
       }
     }),
@@ -82,14 +83,14 @@ fn turn_guard(guard: Guard) -> Guard {
   let new_loc =
     GuardLocation(
       at: guard.location.at,
-      facing: grid.clockwise(guard.location.facing, for: 2),
+      facing: coord.clockwise(guard.location.facing, for: 2),
     )
 
   Guard(location: new_loc, history: set.insert(guard.history, new_loc))
 }
 
 fn step(map: grid.Grid(MapTile), guard: Guard) -> Result(Guard, EndState) {
-  let new_coord = grid.shift(guard.location.at, guard.location.facing)
+  let new_coord = coord.shift(guard.location.at, guard.location.facing)
 
   case
     set.contains(guard.history, GuardLocation(new_coord, guard.location.facing)),
