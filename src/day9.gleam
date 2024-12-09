@@ -109,16 +109,6 @@ pub fn solve1(input: Puzzle) -> Result(Int, String) {
 
 // Part 2
 
-fn blocks_to_string(data: List(Block)) {
-  list.map(data, fn(b) {
-    case b {
-      FileBlock(id) -> int.to_string(id)
-      FreeBlock -> "."
-    }
-  })
-  |> string.concat()
-}
-
 fn insert(id: Int, size: Int, into diskmap: DiskMap) {
   insert_loop(id, size, diskmap, []) |> list.reverse()
 }
@@ -182,4 +172,16 @@ pub fn solve2(input: Puzzle) -> Result(Int, String) {
   |> to_blocks()
   |> checksum()
   |> Ok()
+}
+
+// Debugging :)
+
+fn blocks_to_string(data: List(Block)) {
+  list.map(data, fn(b) {
+    case b {
+      FileBlock(id) -> int.to_string(id)
+      FreeBlock -> "."
+    }
+  })
+  |> string.concat()
 }
