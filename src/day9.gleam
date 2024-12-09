@@ -1,9 +1,6 @@
-import data/amphista
 import gleam/int
-import gleam/io
 import gleam/list
 import gleam/order
-import gleam/pair
 import gleam/result
 import gleam/string
 
@@ -112,6 +109,77 @@ pub fn solve1(input: Puzzle) -> Result(Int, String) {
 
 // Part 2
 
+fn blocks_to_string(data: List(Block)) {
+  list.map(data, fn(b) {
+    case b {
+      FileBlock(id) -> int.to_string(id)
+      FreeBlock -> "."
+    }
+  })
+  |> string.concat()
+}
+
+fn insert(id: Int, size: Int, into diskmap: DiskMap) {
+  insert_loop(id, size, diskmap, []) |> list.reverse()
+}
+
+fn rm_file(from diskmap: DiskMap, at id: Int) {
+  list.map(diskmap, fn(f) {
+    case f {
+      DiskFile(i, size) ->
+        case i == id {
+          True -> DiskFree(size)
+          False -> f
+        }
+      DiskFree(_) -> f
+    }
+  })
+}
+
+fn insert_loop(id: Int, size: Int, to_search: DiskMap, searched: DiskMap) {
+  case to_search {
+    [] -> searched
+    [DiskFree(available), ..rest] -> {
+      case int.compare(size, available) {
+        order.Eq ->
+          list.append(list.reverse(rm_file(rest, id)), [
+            DiskFile(id, size),
+            ..searched
+          ])
+        order.Lt ->
+          list.append(list.reverse(rm_file(rest, id)), [
+            DiskFree(available - size),
+            DiskFile(id, size),
+            ..searched
+          ])
+        order.Gt ->
+          insert_loop(id, size, rest, [DiskFree(available), ..searched])
+      }
+    }
+    [DiskFile(f_id, f_size), ..rest] -> {
+      case f_id == id {
+        True -> list.append(list.reverse(to_search), searched)
+        False ->
+          insert_loop(id, size, rest, [DiskFile(f_id, f_size), ..searched])
+      }
+    }
+  }
+}
+
+fn move_file_to_free_space(id: Int, size: Int, diskmap: DiskMap) {
+  insert(id, size, into: diskmap)
+}
+
 pub fn solve2(input: Puzzle) -> Result(Int, String) {
-  Error("Part 2 not implemented yet!")
+  input
+  |> list.reverse()
+  |> list.fold(from: input, with: fn(diskmap, file) {
+    case file {
+      DiskFile(id, size) -> move_file_to_free_space(id, size, diskmap)
+      DiskFree(_) -> diskmap
+    }
+  })
+  |> to_blocks()
+  |> checksum()
+  |> Ok()
 }
