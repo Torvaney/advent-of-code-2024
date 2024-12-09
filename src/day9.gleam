@@ -175,12 +175,8 @@ fn rm_file(from diskmap: DiskMap, at id: Int) -> List(DiskSpace) {
   // location on the disk
   list.map(diskmap, fn(f) {
     case f {
-      DiskFile(i, size) ->
-        case i == id {
-          True -> DiskFree(size)
-          False -> f
-        }
-      DiskFree(_) -> f
+      DiskFile(i, size) if i == id -> DiskFree(size)
+      _ -> f
     }
   })
 }
