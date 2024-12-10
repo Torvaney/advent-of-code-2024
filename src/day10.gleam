@@ -20,26 +20,28 @@ pub fn parse(input: String) -> Result(Puzzle, String) {
 // Part 1
 
 fn score_trailhead(from start: coord.Coordinate, in map: grid.Grid(Int)) -> Int {
-  set.size(score_trailhead_loop(from: start, in: map))
+  score_trailhead_loop(from: start, in: map)
+  |> list.unique()
+  |> list.length()
 }
 
 fn score_trailhead_loop(
   from xy: coord.Coordinate,
   in map: grid.Grid(Int),
-) -> set.Set(coord.Coordinate) {
+) -> List(coord.Coordinate) {
   case grid.get(from: map, at: xy) {
-    Ok(9) -> set.new() |> set.insert(xy)
+    Ok(9) -> [xy]
     Ok(height) -> {
       next_to(xy)
-      |> list.fold(from: set.new(), with: fn(total, adj) {
+      |> list.fold(from: [], with: fn(total, adj) {
         case grid.get(from: map, at: adj) {
           Ok(adj_height) if adj_height == height + 1 ->
-            set.union(total, score_trailhead_loop(adj, map))
+            list.append(score_trailhead_loop(adj, map), total)
           _ -> total
         }
       })
     }
-    Error(_) -> set.new()
+    Error(_) -> []
   }
 }
 
@@ -49,16 +51,28 @@ pub fn next_to(coord: coord.Coordinate) -> List(coord.Coordinate) {
   })
 }
 
-pub fn solve1(input: Puzzle) -> Result(Int, String) {
+fn solve(
+  input: Puzzle,
+  fun: fn(coord.Coordinate, Puzzle) -> Int,
+) -> Result(Int, String) {
   grid.find_all(in: input, with: fn(height) { height == 0 })
   |> list.map(pair.first)
-  |> list.map(fn(xy) { score_trailhead(xy, input) })
+  |> list.map(fn(xy) { fun(xy, input) })
   |> int.sum()
   |> Ok()
 }
 
+pub fn solve1(input: Puzzle) -> Result(Int, String) {
+  solve(input, score_trailhead)
+}
+
 // Part 2
 
+fn rate_trailhead(from start: coord.Coordinate, in map: grid.Grid(Int)) -> Int {
+  score_trailhead_loop(from: start, in: map)
+  |> list.length()
+}
+
 pub fn solve2(input: Puzzle) -> Result(Int, String) {
-  Error("Part 2 not implemented yet!")
+  solve(input, rate_trailhead)
 }
