@@ -1,11 +1,9 @@
 import data/coord
 import data/grid
 import gleam/int
-import gleam/io
 import gleam/list
 import gleam/pair
 import gleam/result
-import gleam/set
 
 pub type Puzzle =
   grid.Grid(Int)
