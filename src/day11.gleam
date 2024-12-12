@@ -64,18 +64,17 @@ fn blink(
   stones: counter.Counter(Stone),
   cache: StoneTransformations,
 ) -> #(counter.Counter(Stone), StoneTransformations) {
-  counter.to_list(stones)
-  |> list.fold(from: #(stones, cache), with: fn(acc, x) {
-    let #(count, cache) = acc
-    let #(stone, n) = x
-    let #(new_stones, new_cache) = transform_stone_cached(stone, cache)
+  use #(count, cache), #(stone, n) <- list.fold(
+    over: counter.to_list(stones),
+    from: #(stones, cache),
+  )
 
-    let new_count =
-      counter.update_by(count, new_stones, by: n)
-      |> counter.decrement(stone, by: n)
-
-    #(new_count, new_cache)
-  })
+  let #(new_stones, new_cache) = transform_stone_cached(stone, cache)
+  let new_count =
+    counter.update_by(count, new_stones, by: n)
+    |> counter.decrement(stone, by: n)
+    
+  #(new_count, new_cache)
 }
 
 fn solve(input: Puzzle, n: Int) {
