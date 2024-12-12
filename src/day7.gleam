@@ -101,8 +101,8 @@ fn solve(input: Puzzle, ops: List(Op)) {
   input
   |> list.filter(fn(x) { equation_can_be_true(x, ops) })
   |> list.map(pair.first)
-  |> list.reduce(int.add)
-  |> result.replace_error("No equations found!")
+  |> int.sum()
+  |> Ok()
 }
 
 pub fn solve1(input: Puzzle) -> Result(Int, String) {

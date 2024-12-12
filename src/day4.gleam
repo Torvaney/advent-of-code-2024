@@ -35,8 +35,7 @@ fn search_xmas(from grid: Puzzle, at coord: coord.Coordinate) -> Int {
 pub fn solve1(input: Puzzle) -> Result(Int, String) {
   grid.coordinates(input)
   |> list.map(fn(coord) { search_xmas(input, coord) })
-  |> list.reduce(int.add)
-  |> result.unwrap(0)
+  |> int.sum()
   |> Ok()
 }
 

@@ -101,8 +101,8 @@ pub fn solve1(input: Puzzle) -> Result(Int, String) {
       _ -> Error(Nil)
     }
   })
-  |> list.reduce(int.add)
-  |> result.replace_error("Parsed an empty input!")
+  |> int.sum()
+  |> Ok()
 }
 
 // Part 2

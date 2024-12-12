@@ -61,9 +61,7 @@ fn sum_middle_elements(from paths: List(Path)) {
   paths
   |> list.try_map(take_middle_element)
   |> result.replace_error("Couldn't take the middle elements of every path!")
-  |> result.try(fn(xs) {
-    list.reduce(xs, int.add) |> result.replace_error("No valid paths found!")
-  })
+  |> result.map(fn(xs) { int.sum(xs) })
 }
 
 pub fn solve1(input: Puzzle) -> Result(Int, String) {

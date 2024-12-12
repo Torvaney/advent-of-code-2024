@@ -203,7 +203,7 @@ pub fn solve2(input: Puzzle) -> Result(Int, String) {
 
 // Debugging :)
 
-fn blocks_to_string(data: List(Block)) {
+fn blocks_to_string(data: List(Block)) -> String {
   list.map(data, fn(b) {
     case b {
       FileBlock(id) -> int.to_string(id)
