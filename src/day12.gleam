@@ -2,7 +2,6 @@ import data/coord
 import data/grid
 import gleam/bool
 import gleam/int
-import gleam/io
 import gleam/list
 import gleam/pair
 import gleam/set
