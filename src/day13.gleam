@@ -1,10 +1,8 @@
 import data/coord
 import gleam/bool
 import gleam/int
-import gleam/io
 import gleam/list
 import gleam/option.{Some}
-import gleam/regex
 import gleam/regexp
 import gleam/result
 import gleam/string
@@ -119,6 +117,19 @@ pub fn solve1(input: Puzzle) -> Result(Int, String) {
 
 // Part 2
 
+fn add_offset(machine: Machine) -> Machine {
+  let offset = 10_000_000_000_000
+  let #(x, y) = machine.prize
+
+  Machine(machine.a, machine.b, #(x + offset, y + offset))
+}
+
 pub fn solve2(input: Puzzle) -> Result(Int, String) {
-  Error("Part 2 not implemented yet!")
+  input
+  |> list.filter_map(fn(m) {
+    use #(a, b) <- result.try(solve_machine(add_offset(m)))
+    Ok(3 * a + 1 * b)
+  })
+  |> int.sum()
+  |> Ok()
 }
