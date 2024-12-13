@@ -2,6 +2,7 @@ import data/coord
 import data/grid
 import gleam/bool
 import gleam/int
+import gleam/io
 import gleam/list
 import gleam/pair
 import gleam/set
@@ -39,6 +40,46 @@ fn area_and_perimeter(coords: set.Set(coord.Coordinate)) {
     |> int.sum()
 
   #(area, perimeter)
+}
+
+fn is_corner(
+  at coord: coord.Coordinate,
+  towards dir: coord.Direction,
+  in plot_coords: set.Set(coord.Coordinate),
+) -> Bool {
+  case
+    list.map(
+      [coord.clockwise(dir, 1), dir, coord.anticlockwise(dir, 1)],
+      fn(dir) { set.contains(plot_coords, coord.shift(coord, dir)) },
+    )
+  {
+    // Concave corner
+    [True, False, True] -> True
+    // Convex corners
+    [False, False, False] -> True
+    [False, True, False] -> True
+    _ -> False
+  }
+}
+
+fn count_corners(
+  at coord: coord.Coordinate,
+  in plot_coords: set.Set(coord.Coordinate),
+) {
+  list.count(
+    [coord.NorthEast, coord.NorthWest, coord.SouthEast, coord.SouthWest],
+    fn(dir) { is_corner(coord, dir, plot_coords) },
+  )
+}
+
+fn area_and_sides(coords: set.Set(coord.Coordinate)) {
+  let area = set.size(coords)
+  let sides =
+    set.to_list(coords)
+    |> list.map(fn(xy) { count_corners(xy, coords) })
+    |> int.sum()
+
+  #(area, sides)
 }
 
 type PlotGroups =
@@ -119,5 +160,12 @@ pub fn solve1(input: Puzzle) -> Result(Int, String) {
 // Part 2
 
 pub fn solve2(input: Puzzle) -> Result(Int, String) {
-  Error("Part 2 not implemented yet!")
+  input
+  |> group_plots()
+  |> list.map(fn(x) {
+    let #(area, sides) = area_and_sides(x.1)
+    area * sides
+  })
+  |> int.sum()
+  |> Ok()
 }

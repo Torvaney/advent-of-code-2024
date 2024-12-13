@@ -45,6 +45,22 @@ pub fn clockwise(from dir: Direction, for steps: Int) -> Direction {
   })
 }
 
+pub fn anticlockwise(from dir: Direction, for steps: Int) -> Direction {
+  list.range(1, steps)
+  |> list.fold(from: dir, with: fn(d, _) {
+    case d {
+      NorthWest -> West
+      North -> NorthWest
+      NorthEast -> North
+      East -> NorthEast
+      SouthEast -> East
+      South -> SouthEast
+      SouthWest -> South
+      West -> SouthWest
+    }
+  })
+}
+
 pub fn flip(dir: Direction) -> Direction {
   clockwise(dir, 4)
 }
