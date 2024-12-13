@@ -2,6 +2,7 @@ import argv
 import day1
 import day10
 import day11
+import day12
 import day2
 import day3
 import day4
@@ -138,6 +139,7 @@ pub fn main() {
     day(9, day9.parse, day9.solve1, day9.solve2),
     day(10, day10.parse, day10.solve1, day10.solve2),
     day(11, day11.parse, day11.solve1, day11.solve2),
+    day(12, day12.parse, day12.solve1, day12.solve2),
   ])
   |> glint.run(argv.load().arguments)
 }
