@@ -53,7 +53,8 @@ fn group_plots(map: grid.Grid(String)) -> PlotGroups {
 
     use <- bool.guard(set.contains(searched, coord), #(groups, searched))
 
-    let plot_group = find_contiguous_plot(group, coord, map, set.new())
+    let plot_group =
+      find_contiguous_plot(group, coord, map, set.new(), set.new())
     let new_groups = [#(group, plot_group), ..groups]
     let new_searched = set.union(searched, plot_group)
 
@@ -83,18 +84,24 @@ fn find_contiguous_plot(
   from coord: coord.Coordinate,
   in map: grid.Grid(String),
   after searched: set.Set(coord.Coordinate),
+  followed_by to_search: set.Set(coord.Coordinate),
 ) {
   let new_neighbours =
     set.difference(from: neighbours(group, coord, map), minus: searched)
   let new_searched = set.insert(searched, coord)
 
-  case set.to_list(new_neighbours) {
-    [] -> new_searched
-    coords ->
-      list.map(coords, fn(xy) {
-        find_contiguous_plot(group, xy, map, new_searched)
-      })
-      |> list.fold(from: set.new(), with: set.union)
+  case set.to_list(new_neighbours), set.to_list(to_search) {
+    [], [] -> new_searched
+    [], [next, ..rest] ->
+      find_contiguous_plot(group, next, map, new_searched, set.from_list(rest))
+    [next, ..rest], _ ->
+      find_contiguous_plot(
+        group,
+        next,
+        map,
+        new_searched,
+        set.union(set.from_list(rest), to_search),
+      )
   }
 }
 
