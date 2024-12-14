@@ -87,11 +87,12 @@ fn solve_machine(machine: Machine) {
 
   // Check for a non-integer solution
   // (we can be lazy and just abuse the fact that due to integer division,
-  //  a non-int solution will not return the exact prize)
+  //  a non-int solution will not return the exact prize when passed through the
+  //  original equation)
   let check_x = a_presses * a_x + b_presses * b_x
   let check_y = a_presses * a_y + b_presses * b_y
   use <- bool.guard(
-    bool.and(check_x != p_x, check_y != p_y),
+    bool.or(check_x != p_x, check_y != p_y),
     Error("No integer solution found!"),
   )
 
