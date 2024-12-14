@@ -1,7 +1,21 @@
+import gleam/int
 import gleam/list
+import gleam/result
+import gleam/string
 
 pub type Coordinate =
   #(Int, Int)
+
+// Init
+
+pub fn from_string(input: String, delim: String) -> Result(Coordinate, Nil) {
+  use #(xs, ys) <- result.try(string.split_once(input, on: delim))
+  use x <- result.try(int.parse(xs))
+  use y <- result.try(int.parse(ys))
+  Ok(#(x, y))
+}
+
+// Rest
 
 pub type Direction {
   NorthWest
