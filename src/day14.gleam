@@ -2,10 +2,13 @@ import data/coord
 import gleam/bool
 import gleam/dict
 import gleam/int
+import gleam/io
 import gleam/list
 import gleam/option.{Some}
 import gleam/regexp
 import gleam/result
+import gleam/set
+import gleam/string
 import input
 
 pub type Robot {
@@ -87,6 +90,67 @@ pub fn solve1(input: Puzzle) -> Result(Int, String) {
 
 // Part 2
 
+type IndexedPuzzle {
+  IndexedPuzzle(step: Int, robots: List(Robot), occupied: Int)
+}
+
+fn count_occupied(robots: List(Robot)) {
+  list.map(robots, fn(r) { r.position }) |> set.from_list() |> set.size()
+}
+
+fn show_grid(robots: List(Robot), grid: #(Int, Int)) {
+  let coords = list.map(robots, fn(r) { r.position }) |> set.from_list()
+
+  list.map(list.range(0, grid.0 - 1), fn(y) {
+    list.map(list.range(0, grid.1 - 1), fn(x) {
+      case set.contains(coords, #(x, y)) {
+        True -> "0"
+        False -> " "
+      }
+    })
+    |> string.concat()
+  })
+  |> list.intersperse(with: "\n")
+  |> string.concat()
+  |> io.println()
+
+  robots
+}
+
 pub fn solve2(input: Puzzle) -> Result(Int, String) {
-  Error("Part 2 not implemented yet!")
+  let grid_size = #(101, 103)
+
+  let steps =
+    list.scan(
+      list.range(0, 10_000),
+      IndexedPuzzle(0, input, count_occupied(input)),
+      fn(ip, i) {
+        let robots = list.map(ip.robots, fn(r) { move_robot(r, 1, grid_size) })
+        IndexedPuzzle(
+          step: i + 1,
+          robots: robots,
+          occupied: count_occupied(robots),
+        )
+      },
+    )
+
+  // Christmas tree arrangement ought(?) to have more(?) blank spaces than others
+  // (NB: it turns out we just needed to take the top one...)
+  steps
+  |> list.sort(by: fn(ip1, ip2) { int.compare(ip1.occupied, ip2.occupied) })
+  |> list.reverse()
+  |> list.take(up_to: 10)
+  |> list.map(fn(ip) {
+    io.println("Step " <> int.to_string(ip.step))
+    io.println("Occupied: " <> int.to_string(ip.occupied))
+    show_grid(ip.robots, grid_size)
+    io.println(string.repeat("-", grid_size.0))
+
+    ip.step
+  })
+  |> list.first()
+  // Impossible...
+  |> result.replace_error(
+    "No steps found - did you configure the search correctly?",
+  )
 }
