@@ -1,5 +1,7 @@
 import data/coord
 import gleam/dict
+import gleam/int
+import gleam/io
 import gleam/list
 import gleam/result
 import gleam/string
@@ -110,4 +112,36 @@ pub fn map(
 
 pub fn set(in grid: Grid(a), at coord: coord.Coordinate, to val: a) -> Grid(a) {
   Grid(data: dict.insert(grid.data, coord, val))
+}
+
+pub fn update(
+  in grid: Grid(a),
+  with changes: dict.Dict(coord.Coordinate, a),
+) -> Grid(a) {
+  Grid(data: dict.merge(into: grid.data, from: changes))
+}
+
+// Debug
+
+pub fn debug(grid: Grid(a), with to_string: fn(a) -> String) {
+  let #(max_x, max_y) =
+    dict.keys(grid.data)
+    |> list.fold(#(0, 0), fn(max, coord) {
+      #(int.max(max.0, coord.0), int.max(max.1, coord.1))
+    })
+
+  list.map(list.range(0, max_y - 1), fn(y) {
+    list.map(list.range(0, max_x - 1), fn(x) {
+      case get(grid, #(x, y)) {
+        Ok(v) -> to_string(v)
+        Error(Nil) -> " "
+      }
+    })
+    |> string.concat()
+  })
+  |> list.intersperse(with: "\n")
+  |> string.concat()
+  |> io.println()
+
+  grid
 }

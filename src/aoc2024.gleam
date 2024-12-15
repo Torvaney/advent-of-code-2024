@@ -5,6 +5,7 @@ import day11
 import day12
 import day13
 import day14
+import day15
 import day2
 import day3
 import day4
@@ -144,6 +145,7 @@ pub fn main() {
     day(12, day12.parse, day12.solve1, day12.solve2),
     day(13, day13.parse, day13.solve1, day13.solve2),
     day(14, day14.parse, day14.solve1, day14.solve2),
+    day(15, day15.parse, day15.solve1, day15.solve2),
   ])
   |> glint.run(argv.load().arguments)
 }
