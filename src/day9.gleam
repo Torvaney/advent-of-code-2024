@@ -200,15 +200,3 @@ pub fn solve2(input: Puzzle) -> Result(Int, String) {
   |> checksum()
   |> Ok()
 }
-
-// Debugging :)
-
-fn blocks_to_string(data: List(Block)) -> String {
-  list.map(data, fn(b) {
-    case b {
-      FileBlock(id) -> int.to_string(id)
-      FreeBlock -> "."
-    }
-  })
-  |> string.concat()
-}
