@@ -35,6 +35,10 @@ pub fn from_string(
   // TODO: validate that all the grid squares are filled...
 }
 
+pub fn from_list(items: List(#(coord.Coordinate, a))) -> Grid(a) {
+  Grid(dict.from_list(items))
+}
+
 pub fn to_list(grid: Grid(a)) -> List(#(coord.Coordinate, a)) {
   dict.to_list(grid.data)
 }
